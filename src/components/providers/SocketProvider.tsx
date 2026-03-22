@@ -91,13 +91,17 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
         socketInstance.on("connect_error", () => {
           if (mounted) {
             setIsConnected(false);
-            console.log("Socket connection error (may be expected on serverless platforms)");
+            if (process.env.NODE_ENV === 'development') {
+              console.log("Socket connection error (may be expected on serverless platforms)");
+            }
           }
         });
 
         setSocket(socketInstance);
       } catch {
-        console.log("Socket initialization error (may be expected on serverless platforms)");
+        if (process.env.NODE_ENV === 'development') {
+          console.log("Socket initialization error (may be expected on serverless platforms)");
+        }
       }
     };
 

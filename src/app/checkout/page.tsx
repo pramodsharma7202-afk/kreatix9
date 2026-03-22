@@ -79,9 +79,13 @@ export default function CheckoutPage() {
         body: JSON.stringify(payload),
       });
 
-      if (!res.ok) throw new Error("Failed to create order");
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || data.error || "Failed to create order");
+      }
       
-      const newOrder = await res.json();
+      const newOrder = data;
       
       sessionStorage.setItem('lastOrder', JSON.stringify(newOrder));
       
@@ -95,9 +99,9 @@ export default function CheckoutPage() {
       clearCart();
       router.push("/order-success");
       
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert("Failed to place order. Please try again.");
+      alert(error.message || "Failed to place order. Please try again.");
     } finally {
       setLoading(false);
     }

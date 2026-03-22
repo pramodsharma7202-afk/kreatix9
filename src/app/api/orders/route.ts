@@ -21,6 +21,19 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: 'No order items' }, { status: 400 });
     }
 
+    // 1. Validate stock for all items
+    for (const item of orderItems) {
+      const product = await Product.findById(item.product);
+      if (!product) {
+        return NextResponse.json({ message: `Product ${item.name} not found` }, { status: 404 });
+      }
+      if (product.stock < item.qty) {
+        return NextResponse.json({ 
+          message: `Insufficient stock for ${product.name}. Available: ${product.stock}, Requested: ${item.qty}` 
+        }, { status: 400 });
+      }
+    }
+
     const orderCount = await Order.countDocuments();
     const orderNumber = `ORD-${Date.now().toString(36).toUpperCase()}-${(orderCount + 1).toString().padStart(4, '0')}`;
 
@@ -41,6 +54,7 @@ export async function POST(req: Request) {
 
     const createdOrder = await order.save();
 
+    // 2. Decrement stock after successful order creation
     for (const item of orderItems) {
       await Product.findByIdAndUpdate(item.product, { $inc: { soldCount: item.qty, stock: -item.qty } });
     }
