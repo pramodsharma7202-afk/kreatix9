@@ -3,11 +3,27 @@
 import { useEffect, useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import dynamic from "next/dynamic";
+// Lazy load below-fold and heavy components to reduce TBT on initial load
 const HeroScene = dynamic(() => import("@/components/3d/HeroScene").then(mod => mod.HeroScene), { ssr: false });
+const FeaturedProducts = dynamic(() => import("@/components/shared/FeaturedProducts").then(mod => mod.FeaturedProducts), {
+  ssr: false,
+  loading: () => (
+    <div className="py-24 bg-black">
+      <div className="container mx-auto px-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {[1,2,3,4].map(i => (
+            <div key={i} className="animate-pulse">
+              <div className="bg-neutral-900 aspect-[4/5] rounded-xl mb-4" />
+              <div className="h-6 bg-neutral-900 rounded w-2/3 mb-2" />
+              <div className="h-4 bg-neutral-900 rounded w-1/3" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+});
 import { Button } from "@/components/ui/button";
-import { FeaturedProducts } from "@/components/shared/FeaturedProducts";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 
@@ -24,23 +40,35 @@ export default function Home() {
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
 
   useEffect(() => {
-    gsap.registerPlugin(ScrollTrigger);
-    
-    // Parallax effect for the middle section
-    gsap.fromTo(
-      ".parallax-bg",
-      { backgroundPosition: "50% 0%" },
-      {
-        backgroundPosition: "50% 100%",
-        ease: "none",
-        scrollTrigger: {
-          trigger: ".parallax-section",
-          start: "top bottom",
-          end: "bottom top",
-          scrub: true,
-        },
-      }
-    );
+    // Defer GSAP to idle time so it doesn't block first paint (reduces TBT)
+    const setupGsap = () => {
+      import("gsap").then(({ default: gsap }) => {
+        import("gsap/ScrollTrigger").then(({ ScrollTrigger }) => {
+          gsap.registerPlugin(ScrollTrigger);
+          gsap.fromTo(
+            ".parallax-bg",
+            { backgroundPosition: "50% 0%" },
+            {
+              backgroundPosition: "50% 100%",
+              ease: "none",
+              scrollTrigger: {
+                trigger: ".parallax-section",
+                start: "top bottom",
+                end: "bottom top",
+                scrub: true,
+              },
+            }
+          );
+        });
+      });
+    };
+
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      (window as Window & { requestIdleCallback: (fn: () => void) => void }).requestIdleCallback(setupGsap);
+    } else {
+      // Fallback for Safari which doesn't support requestIdleCallback
+      setTimeout(setupGsap, 200);
+    }
   }, []);
 
   return (

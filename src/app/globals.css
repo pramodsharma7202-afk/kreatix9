@@ -89,3 +89,39 @@ html {
   background-color: rgba(255, 255, 255, 0.15);
   color: #fff;
 }
+
+/* 
+  Performance: GPU compositing layer hints for elements that will animate.
+  Prevents layout recalculations during scroll/animation (improves TBT).
+*/
+[class*='motion'] {
+  will-change: transform, opacity;
+}
+
+/* Layout containment for off-screen sections — reduces paint area */
+section {
+  contain: layout style;
+}
+
+/* 
+  Respect prefers-reduced-motion globally.
+  Reduces battery drain on mobile and improves performance for accessibility users.
+*/
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Mobile: font rendering optimization for LCP */
+@media (max-width: 768px) {
+  body {
+    text-rendering: optimizeSpeed;
+    -webkit-font-smoothing: antialiased;
+  }
+}

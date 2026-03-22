@@ -8,7 +8,7 @@ export function HeroScene() {
       {/* Premium Dark Gradient Backdrop */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(40,40,40,0.8)_0%,rgba(0,0,0,1)_100%)]" />
       
-      {/* Animated Abstract Orb 1 */}
+      {/* Animated Abstract Orb 1 — reduced blur radius for GPU paint savings on mobile */}
       <motion.div
         animate={{
           scale: [1, 1.2, 1],
@@ -20,7 +20,7 @@ export function HeroScene() {
           repeat: Infinity,
           ease: "linear",
         }}
-        className="absolute top-1/4 left-1/4 w-[40vw] h-[40vw] rounded-full bg-neutral-800/20 blur-[100px]"
+        className="hero-orb absolute top-1/4 left-1/4 w-[40vw] h-[40vw] rounded-full bg-neutral-800/20 blur-[60px]"
       />
 
       {/* Animated Abstract Orb 2 */}
@@ -35,8 +35,15 @@ export function HeroScene() {
           repeat: Infinity,
           ease: "easeInOut",
         }}
-        className="absolute bottom-1/4 right-1/4 w-[30vw] h-[30vw] rounded-full bg-neutral-700/20 blur-[120px]"
+        className="hero-orb absolute bottom-1/4 right-1/4 w-[30vw] h-[30vw] rounded-full bg-neutral-700/20 blur-[80px]"
       />
+
+      {/* Respect prefers-reduced-motion for accessibility + performance */}
+      <style>{`
+        @media (prefers-reduced-motion: reduce) {
+          .hero-orb { animation: none !important; transform: none !important; }
+        }
+      `}</style>
     </div>
   );
 }
