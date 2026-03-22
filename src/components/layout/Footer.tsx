@@ -5,8 +5,15 @@ export function Footer() {
   return (
     <footer className="bg-black text-neutral-400 py-16 border-t border-neutral-900">
       <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-12">
-        <div>
-          <h2 className="text-white text-xl font-black uppercase tracking-widest mb-4">Kreatix9</h2>
+        <div className="flex flex-col gap-4">
+          <Link href="/" className="flex items-center gap-2 group w-fit transition-transform hover:scale-105">
+            <img 
+              src="/logo.png" 
+              alt="Kreatix9 Logo" 
+              className="w-10 h-10 object-contain brightness-90 transition-all duration-300 group-hover:brightness-110" 
+            />
+            <h2 className="text-white text-xl font-black uppercase tracking-widest">Kreatix9</h2>
+          </Link>
           <p className="text-sm leading-relaxed max-w-xs">
             Experience the pinnacle of luxury shopping. Curated collections for the modern connoisseur.
           </p>

@@ -15,8 +15,15 @@ export function Navbar() {
     <header className="fixed top-0 w-full z-50 glass border-b border-white/10 text-white transition-all duration-300 bg-black/60 backdrop-blur-md">
       <div className="container mx-auto px-4 h-20 flex items-center justify-between">
         {/* Logo */}
-        <Link href="/" className="text-2xl font-black uppercase tracking-widest text-white">
-          Kreatix<span className="text-neutral-400">9</span>
+        <Link href="/" className="flex items-center gap-2 group transition-transform hover:scale-105">
+          <img 
+            src="/logo.png" 
+            alt="Kreatix9 Logo" 
+            className="w-12 h-12 object-contain brightness-110 filter drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] transition-all duration-300 group-hover:drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]" 
+          />
+          <span className="text-2xl font-black uppercase tracking-widest text-white hidden sm:inline-block">
+            Kreatix<span className="text-neutral-400">9</span>
+          </span>
         </Link>
 
         {/* Desktop Nav */}

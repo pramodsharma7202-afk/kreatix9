@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -8,14 +8,14 @@ import { ArrowLeft } from "lucide-react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function LoginPage() {
+function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get('callbackUrl') || "/dashboard";
+  const callbackUrl = searchParams?.get('callbackUrl') || "/dashboard";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -107,9 +107,21 @@ export default function LoginPage() {
         </form>
 
         <div className="mt-8 text-center text-sm text-neutral-500">
-          Don't have an account? <Link href="/register" className="text-white hover:underline ml-1">Register</Link>
+          Don&apos;t have an account? <Link href="/register" className="text-white hover:underline ml-1">Register</Link>
         </div>
       </motion.div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-black text-white flex justify-center items-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-white"></div>
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }

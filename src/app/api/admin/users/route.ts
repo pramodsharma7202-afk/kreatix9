@@ -3,7 +3,7 @@ import connectToDatabase from '@/lib/db/mongoose';
 import User from '@/lib/db/models/User';
 import Order from '@/lib/db/models/Order';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 
 // GET all users for admin
 export async function GET() {
