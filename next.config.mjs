@@ -18,6 +18,11 @@ const nextConfig = {
       },
     ],
   },
+  experimental: {
+    optimizeCss: true, // Inlines critical CSS to improve LCP/FCP
+  },
+  swcMinify: true,
+  reactStrictMode: true,
   // Reduce initial JS payload by splitting large vendor chunks
   webpack: (config, { isServer }) => {
     if (!isServer) {

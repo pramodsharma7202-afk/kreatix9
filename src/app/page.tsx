@@ -40,25 +40,24 @@ import Link from "next/link";
 function HeroContent() {
   return (
     <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 0.1 }}
-      >
-        {/* h1 is the LCP element — kept light, no nested animations */}
-        <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-white uppercase tracking-[0.2em] mb-6 leading-tight">
-          Redefining{" "}
-          <br className="hidden md:block" />
+      {/* 
+        CRITICAL LCP FIX: Removed motion.div from H1.
+        By keeping the H1 as plain HTML, it renders immediately via SSR.
+        Previously, it was hidden (opacity: 0) until framer-motion JS loaded.
+      */}
+      <div className="animate-in fade-in slide-in-from-bottom-4 duration-1000 fill-mode-both">
+        <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-white uppercase tracking-[0.2em] mb-6 leading-tight drop-shadow-2xl">
+          Redefining <br className="hidden md:block" />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-neutral-200 to-neutral-600">
             Luxury
           </span>
         </h1>
-      </motion.div>
+      </div>
 
       <motion.p
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.8, delay: 0.5 }}
+        transition={{ duration: 0.8, delay: 0.4 }}
         className="text-lg md:text-xl text-neutral-400 mb-10 max-w-2xl mx-auto font-light"
       >
         Discover a curated collection of premium products designed for the contemporary lifestyle.
@@ -67,7 +66,7 @@ function HeroContent() {
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.6, delay: 0.9 }}
+        transition={{ duration: 0.6, delay: 0.8 }}
         className="flex flex-col sm:flex-row gap-6 justify-center"
       >
         <Link href="/shop" prefetch={false}>

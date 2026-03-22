@@ -22,6 +22,8 @@ export function Navbar() {
             alt="Kreatix9 Logo" 
             width={48}
             height={48}
+            priority
+            fetchPriority="high"
             className="object-contain brightness-110 filter drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] transition-all duration-300 group-hover:drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]" 
           />
           <span className="text-2xl font-black uppercase tracking-widest text-white hidden sm:inline-block">

@@ -5,8 +5,8 @@ import { motion } from "framer-motion";
 export function HeroScene() {
   return (
     <div className="absolute inset-0 z-0 h-full w-full pointer-events-none overflow-hidden bg-black">
-      {/* Premium Dark Gradient Backdrop */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(40,40,40,0.8)_0%,rgba(0,0,0,1)_100%)]" />
+      {/* Premium Dark Gradient Backdrop — opacity slightly lowered for faster paint */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(40,40,40,0.6)_0%,rgba(0,0,0,1)_100%)] opacity-90" />
       
       {/* Animated Abstract Orb 1 — reduced blur radius for GPU paint savings on mobile */}
       <motion.div
