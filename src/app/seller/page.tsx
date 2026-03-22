@@ -1,26 +1,59 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/utils";
 import { Package, TrendingUp, DollarSign, Plus, Eye } from "lucide-react";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 
-const mockProducts = [
-  { id: "1", name: "Premium Headphones", price: 299.99, stock: 50, sold: 32, status: "approved" },
-  { id: "2", name: "Leather Jacket", price: 499.00, stock: 20, sold: 15, status: "approved" },
-  { id: "3", name: "New Arrival Sneakers", price: 189.00, stock: 10, sold: 0, status: "pending" },
-];
+type Product = {
+  _id: string;
+  name: string;
+  price: number;
+  stock: number;
+  soldCount: number;
+  images: string[];
+  isActive: boolean;
+};
 
 export default function SellerDashboardPage() {
+  const { data: session } = useSession();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [activeTab, setActiveTab] = useState("overview");
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await fetch("/api/products?limit=100");
+        if (res.ok) {
+          const data = await res.json();
+          const sellerProducts = (data.products || []).filter(
+            (p: any) => p.seller === session?.user?.id
+          );
+          setProducts(sellerProducts);
+        }
+      } catch (err) {
+        console.error("Failed to fetch products", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (session?.user?.id) {
+      fetchProducts();
+    }
+  }, [session?.user?.id]);
+
+  const totalRevenue = products.reduce((acc, p) => acc + p.price * p.soldCount, 0);
+  const totalSold = products.reduce((acc, p) => acc + p.soldCount, 0);
 
   const stats = [
-    { label: "Total Revenue", value: "$13,984", icon: DollarSign },
-    { label: "Products Listed", value: mockProducts.length, icon: Package },
-    { label: "Units Sold", value: 47, icon: TrendingUp },
+    { label: "Total Revenue", value: formatPrice(totalRevenue), icon: DollarSign },
+    { label: "Products Listed", value: products.length, icon: Package },
+    { label: "Units Sold", value: totalSold, icon: TrendingUp },
   ];
 
   return (
@@ -36,7 +69,6 @@ export default function SellerDashboardPage() {
           </Button>
         </div>
 
-        {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
           {stats.map((s, i) => (
             <motion.div
@@ -55,7 +87,6 @@ export default function SellerDashboardPage() {
           ))}
         </div>
 
-        {/* Product Listings Table */}
         <div className="bg-neutral-900/40 border border-neutral-800 rounded-xl overflow-hidden">
           <div className="flex justify-between items-center p-6 border-b border-neutral-800">
             <h2 className="text-sm font-bold uppercase tracking-widest text-neutral-400">Your Listings</h2>
@@ -67,41 +98,50 @@ export default function SellerDashboardPage() {
                 <th className="py-4 px-6 text-left">Price</th>
                 <th className="py-4 px-6 text-left">Stock</th>
                 <th className="py-4 px-6 text-left">Sold</th>
-                <th className="py-4 px-6 text-left">Admin Status</th>
+                <th className="py-4 px-6 text-left">Status</th>
                 <th className="py-4 px-6 text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {mockProducts.map((product, i) => (
-                <tr key={product.id} className="border-b border-neutral-800/60 hover:bg-neutral-800/20 transition-colors">
-                  <td className="py-4 px-6 text-white font-medium">{product.name}</td>
-                  <td className="py-4 px-6 text-neutral-300">{formatPrice(product.price)}</td>
-                  <td className="py-4 px-6 text-neutral-400">{product.stock}</td>
-                  <td className="py-4 px-6 text-neutral-400">{product.sold}</td>
-                  <td className="py-4 px-6">
-                    <span className={`px-3 py-1 rounded-full text-[10px] uppercase tracking-wider font-bold border ${
-                      product.status === 'approved'
-                        ? 'bg-green-500/10 border-green-500/30 text-green-400'
-                        : 'bg-yellow-500/10 border-yellow-500/30 text-yellow-400'
-                    }`}>
-                      {product.status}
-                    </span>
-                  </td>
-                  <td className="py-4 px-6">
-                    <div className="flex justify-end gap-3">
-                      <button className="text-neutral-500 hover:text-white p-1.5 hover:bg-neutral-800 rounded-lg">
-                        <Eye className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="py-10 text-center text-neutral-500">Loading...</td>
                 </tr>
-              ))}
+              ) : products.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-10 text-center text-neutral-500">No products found. Add your first listing!</td>
+                </tr>
+              ) : (
+                products.map((product) => (
+                  <tr key={product._id} className="border-b border-neutral-800/60 hover:bg-neutral-800/20 transition-colors">
+                    <td className="py-4 px-6 text-white font-medium">{product.name}</td>
+                    <td className="py-4 px-6 text-neutral-300">{formatPrice(product.price)}</td>
+                    <td className="py-4 px-6 text-neutral-400">{product.stock}</td>
+                    <td className="py-4 px-6 text-neutral-400">{product.soldCount || 0}</td>
+                    <td className="py-4 px-6">
+                      <span className={`px-3 py-1 rounded-full text-[10px] uppercase tracking-wider font-bold border ${
+                        product.isActive
+                          ? 'bg-green-500/10 border-green-500/30 text-green-400'
+                          : 'bg-yellow-500/10 border-yellow-500/30 text-yellow-400'
+                      }`}>
+                        {product.isActive ? 'Active' : 'Pending'}
+                      </span>
+                    </td>
+                    <td className="py-4 px-6">
+                      <div className="flex justify-end gap-3">
+                        <Link href={`/product/${product._id}`} className="text-neutral-500 hover:text-white p-1.5 hover:bg-neutral-800 rounded-lg">
+                          <Eye className="w-4 h-4" />
+                        </Link>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* Add Listing Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
           <motion.div
@@ -110,30 +150,12 @@ export default function SellerDashboardPage() {
             className="bg-neutral-900 border border-neutral-700 rounded-2xl p-8 w-full max-w-lg"
           >
             <h2 className="text-xl font-black uppercase tracking-widest mb-8">New Product Listing</h2>
-            <div className="space-y-5">
-              <div>
-                <label className="block text-xs uppercase tracking-widest text-neutral-500 mb-2">Product Name</label>
-                <input type="text" className="w-full bg-black border border-neutral-800 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-neutral-500 text-white" placeholder="Product Name" />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs uppercase tracking-widest text-neutral-500 mb-2">Price (USD)</label>
-                  <input type="number" className="w-full bg-black border border-neutral-800 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-neutral-500 text-white" placeholder="0.00"/>
-                </div>
-                <div>
-                  <label className="block text-xs uppercase tracking-widest text-neutral-500 mb-2">Stock Qty</label>
-                  <input type="number" className="w-full bg-black border border-neutral-800 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-neutral-500 text-white" placeholder="0"/>
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs uppercase tracking-widest text-neutral-500 mb-2">Description</label>
-                <textarea rows={3} className="w-full bg-black border border-neutral-800 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-neutral-500 text-white resize-none" placeholder="Describe your product..." />
-              </div>
-            </div>
-            <p className="text-xs text-neutral-600 mt-4">Listings will go live after admin approval.</p>
+            <p className="text-neutral-500 mb-6">To add products, please use the Admin Dashboard with seller privileges.</p>
             <div className="flex gap-4 mt-6">
-              <Button variant="luxury" className="flex-1">Submit for Review</Button>
-              <Button variant="outline" className="border-neutral-700" onClick={() => setShowAddModal(false)}>Cancel</Button>
+              <Link href="/admin/products" className="flex-1">
+                <Button variant="luxury" className="w-full">Go to Admin Products</Button>
+              </Link>
+              <Button variant="outline" className="border-neutral-700" onClick={() => setShowAddModal(false)}>Close</Button>
             </div>
           </motion.div>
         </div>

@@ -14,56 +14,70 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          throw new Error('Invalid credentials');
+          return null;
         }
 
-        await connectToDatabase();
+        try {
+          await connectToDatabase();
 
-        const user = await User.findOne({ email: credentials.email }).select('+password');
+          const user = await User.findOne({ email: credentials.email }).select('+password');
 
-        if (!user || !user.password) {
-          throw new Error('User not found');
+          if (!user || !user.password) {
+            return null;
+          }
+
+          const isPasswordCorrect = await bcrypt.compare(credentials.password, user.password);
+
+          if (!isPasswordCorrect) {
+            return null;
+          }
+
+          return {
+            id: user._id.toString(),
+            name: user.name,
+            email: user.email,
+            role: user.role || 'user',
+            image: user.image,
+          };
+        } catch (error) {
+          console.error('Auth error:', error);
+          return null;
         }
-
-        const isPasswordCorrect = await bcrypt.compare(credentials.password, user.password);
-
-        if (!isPasswordCorrect) {
-          throw new Error('Invalid credentials');
-        }
-
-        return {
-          id: user._id.toString(),
-          name: user.name,
-          email: user.email,
-          role: user.role,
-        };
       },
     }),
   ],
   session: {
     strategy: 'jwt',
+    maxAge: 30 * 24 * 60 * 60,
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id;
-        token.role = user.role;
+        token.role = (user as any).role || 'user';
+        token.image = (user as any).image;
       }
+      
+      if (session?.user && trigger === 'update') {
+        token.name = session.user.name;
+        token.email = session.user.email;
+        token.image = (session.user as any).image;
+      }
+      
       return token;
     },
     async session({ session, token }) {
-      if (token) {
-        session.user = {
-          ...session.user,
-          id: (token as any).id as string,
-          role: (token as any).role as string,
-        };
+      if (session.user) {
+        session.user.id = token.id as string;
+        session.user.role = token.role as string;
+        (session.user as any).image = token.image;
       }
       return session;
     },
   },
   pages: {
     signIn: '/login',
+    error: '/login',
   },
   secret: process.env.NEXTAUTH_SECRET,
 };

@@ -2,51 +2,77 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 export interface CartItem {
-  id: string;
+  product: string;
   name: string;
   price: number;
   image: string;
   qty: number;
   stock: number;
+  variant?: string;
 }
 
 interface CartStore {
   items: CartItem[];
+  isHydrated: boolean;
   addItem: (item: CartItem) => void;
-  removeItem: (id: string) => void;
-  updateQuantity: (id: string, qty: number) => void;
+  removeItem: (productId: string) => void;
+  updateQuantity: (productId: string, qty: number) => void;
   clearCart: () => void;
-  totalItems: number;
-  totalPrice: number;
+  syncWithBackend: () => Promise<void>;
+  setHydrated: (state: boolean) => void;
+  get totalItems(): number;
+  get totalPrice(): number;
 }
 
 export const useCartStore = create<CartStore>()(
   persist(
     (set, get) => ({
       items: [],
+      isHydrated: false,
       addItem: (item) => {
         const currentItems = get().items;
-        const existingItem = currentItems.find((i) => i.id === item.id);
+        const existingItem = currentItems.find((i) => i.product === item.product);
 
         if (existingItem) {
+          const newQty = Math.min(existingItem.qty + item.qty, item.stock);
           set({
             items: currentItems.map((i) =>
-              i.id === item.id ? { ...i, qty: Math.min(i.qty + item.qty, item.stock) } : i
+              i.product === item.product ? { ...i, qty: newQty, stock: item.stock } : i
             ),
           });
         } else {
           set({ items: [...currentItems, item] });
         }
       },
-      removeItem: (id) => {
-        set({ items: get().items.filter((i) => i.id !== id) });
+      removeItem: (productId) => {
+        set({ items: get().items.filter((i) => i.product !== productId) });
       },
-      updateQuantity: (id, qty) => {
-        set({
-          items: get().items.map((i) => (i.id === id ? { ...i, qty } : i)),
-        });
+      updateQuantity: (productId, qty) => {
+        const items = get().items;
+        const item = items.find((i) => i.product === productId);
+        if (item) {
+          const newQty = Math.max(1, Math.min(qty, item.stock));
+          set({
+            items: items.map((i) =>
+              i.product === productId ? { ...i, qty: newQty } : i
+            ),
+          });
+        }
       },
       clearCart: () => set({ items: [] }),
+      syncWithBackend: async () => {
+        try {
+          const items = get().items;
+          await fetch('/api/cart', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ items }),
+          });
+        } catch (error) {
+          console.error('Failed to sync cart:', error);
+        }
+      },
+      setHydrated: (state) => set({ isHydrated: state }),
       get totalItems() {
         return get().items.reduce((acc, item) => acc + item.qty, 0);
       },
@@ -55,7 +81,12 @@ export const useCartStore = create<CartStore>()(
       },
     }),
     {
-      name: 'premium-ecommerce-cart', // local storage key
+      name: 'premium-ecommerce-cart',
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          state.setHydrated(true);
+        }
+      },
     }
   )
 );

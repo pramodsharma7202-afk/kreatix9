@@ -20,10 +20,10 @@ export function FeaturedProducts() {
         const data = await res.json();
         if (data.products) {
           setProducts(data.products.map((p: any) => ({
-            id: p._id,
+            _id: p._id,
             name: p.name,
             price: p.price,
-            image: p.images[0] || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600",
+            image: p.images?.[0] || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600",
             description: p.description,
             stock: p.stock
           })));
@@ -52,7 +52,7 @@ export function FeaturedProducts() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {products.map((product, index) => (
             <motion.div
-              key={product.id}
+              key={product._id}
               initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true, margin: "-50px" }}
@@ -76,7 +76,7 @@ export function FeaturedProducts() {
                     onClick={(e) => {
                       e.preventDefault();
                       addItem({
-                        id: product.id,
+                        product: product._id,
                         name: product.name,
                         price: product.price,
                         image: product.image,
@@ -90,7 +90,7 @@ export function FeaturedProducts() {
                 </div>
               </div>
               
-              <Link href={`/product/${product.id}`} className="block">
+              <Link href={`/product/${product._id}`} className="block">
                 <h3 className="text-lg font-bold uppercase tracking-wider mb-2 group-hover:text-neutral-400 transition-colors">
                   {product.name}
                 </h3>
@@ -102,7 +102,7 @@ export function FeaturedProducts() {
         </div>
         
         <div className="mt-16 text-center">
-          <Link href="/collections">
+          <Link href="/shop">
             <Button variant="outline" size="lg" className="border-neutral-700 text-neutral-300 hover:bg-white hover:text-black hover:border-white transition-all duration-300">
               View All Collections
             </Button>

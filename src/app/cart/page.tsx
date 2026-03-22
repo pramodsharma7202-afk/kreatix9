@@ -11,7 +11,7 @@ import { useCartStore } from "@/store/useCartStore";
 export default function CartPage() {
   const { items, removeItem, updateQuantity, totalPrice } = useCartStore();
 
-  if (items.length === 0) {
+  if (!items || items.length === 0) {
     return (
       <div className="min-h-[70vh] bg-black text-white flex flex-col items-center justify-center px-4">
         <motion.div 
@@ -44,7 +44,7 @@ export default function CartPage() {
           <div className="lg:col-span-2 space-y-8">
             {items.map((item, index) => (
               <motion.div 
-                key={item.id}
+                key={item.product}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.1 }}
@@ -59,7 +59,7 @@ export default function CartPage() {
                     <h3 className="text-xl font-medium tracking-wide">{item.name}</h3>
                     <button 
                       aria-label={`Remove ${item.name} from cart`}
-                      onClick={() => removeItem(item.id)}
+                      onClick={() => removeItem(item.product)}
                       className="text-neutral-500 hover:text-white transition-colors p-2 -mr-2 -mt-2"
                     >
                       <Trash2 className="w-5 h-5" />
@@ -74,13 +74,13 @@ export default function CartPage() {
                     <div className="flex items-center border border-neutral-700 rounded-lg bg-neutral-900/50 p-1 w-fit">
                       <button 
                         aria-label="Decrease quantity"
-                        onClick={() => updateQuantity(item.id, Math.max(1, item.qty - 1))}
+                        onClick={() => updateQuantity(item.product, Math.max(1, item.qty - 1))}
                         className="w-8 h-8 flex items-center justify-center text-lg hover:text-white text-neutral-400"
                       >-</button>
                       <span aria-label="Quantity" className="w-10 text-center text-sm">{item.qty}</span>
                       <button 
                         aria-label="Increase quantity"
-                        onClick={() => updateQuantity(item.id, Math.min(item.stock, item.qty + 1))}
+                        onClick={() => updateQuantity(item.product, Math.min(item.stock, item.qty + 1))}
                         className="w-8 h-8 flex items-center justify-center text-lg hover:text-white text-neutral-400"
                       >+</button>
                     </div>

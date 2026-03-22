@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Search, Edit, Eye } from "lucide-react";
+import { Search, Eye } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import Link from "next/link";
 import { useSocket } from "@/components/providers/SocketProvider";

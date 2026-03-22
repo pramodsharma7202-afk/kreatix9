@@ -23,10 +23,12 @@ export default function CheckoutPage() {
     email: "",
     firstName: "",
     lastName: "",
-    address: "",
+    street: "",
     city: "",
+    state: "",
     country: "",
-    zipCode: ""
+    zipCode: "",
+    phone: ""
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -35,7 +37,7 @@ export default function CheckoutPage() {
 
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (items.length === 0) return;
+    if (!items || items.length === 0) return;
     
     if (status !== "authenticated") {
       router.push("/login?callbackUrl=/checkout");
@@ -47,19 +49,24 @@ export default function CheckoutPage() {
     try {
       const payload = {
         orderItems: items.map(i => ({
-          product: i.id,
+          product: i.product,
           name: i.name,
           qty: i.qty,
           price: i.price,
           image: i.image
         })),
         shippingAddress: {
-          address: formData.address,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          street: formData.street,
           city: formData.city,
+          state: formData.state,
           country: formData.country,
-          postalCode: formData.zipCode
+          zipCode: formData.zipCode,
+          phone: formData.phone,
+          email: formData.email || session?.user?.email
         },
-        paymentMethod: "Stripe",
+        paymentMethod: "cod",
         itemsPrice: totalPrice,
         taxPrice: 0,
         shippingPrice: 0,
@@ -75,19 +82,28 @@ export default function CheckoutPage() {
       if (!res.ok) throw new Error("Failed to create order");
       
       const newOrder = await res.json();
-      if (socket) socket.emit("order:new", newOrder);
+      
+      sessionStorage.setItem('lastOrder', JSON.stringify(newOrder));
+      
+      if (socket) {
+        socket.emit("order:new", {
+          ...newOrder,
+          userId: session?.user?.id
+        });
+      }
       
       clearCart();
       router.push("/order-success");
       
     } catch (error) {
       console.error(error);
+      alert("Failed to place order. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  if (items.length === 0) {
+  if (!items || items.length === 0) {
     return (
       <div className="min-h-screen bg-black text-white pt-32 text-center">
         <h1 className="text-3xl font-light mb-6 uppercase tracking-widest">Cart is Empty</h1>
@@ -157,14 +173,14 @@ export default function CheckoutPage() {
                 </div>
                 <input 
                   type="text" 
-                  name="address"
+                  name="street"
                   required
-                  value={formData.address}
+                  value={formData.street}
                   onChange={handleChange}
-                  placeholder="Address" 
+                  placeholder="Street Address" 
                   className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-3 mb-4 focus:outline-none focus:border-neutral-500 transition-colors text-white placeholder:text-neutral-600"
                 />
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 gap-4">
                   <input 
                     type="text" 
                     name="city"
@@ -172,8 +188,19 @@ export default function CheckoutPage() {
                     value={formData.city}
                     onChange={handleChange}
                     placeholder="City" 
-                    className="col-span-1 border border-neutral-800 bg-neutral-900 rounded-lg px-4 py-3 focus:outline-none focus:border-neutral-500 transition-colors text-white placeholder:text-neutral-600"
+                    className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-3 focus:outline-none focus:border-neutral-500 transition-colors text-white placeholder:text-neutral-600"
                   />
+                  <input 
+                    type="text" 
+                    name="state"
+                    required
+                    value={formData.state}
+                    onChange={handleChange}
+                    placeholder="State/Province" 
+                    className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-3 focus:outline-none focus:border-neutral-500 transition-colors text-white placeholder:text-neutral-600"
+                  />
+                </div>
+                <div className="grid grid-cols-3 gap-4 mt-4">
                   <input 
                     type="text" 
                     name="country"
@@ -181,7 +208,7 @@ export default function CheckoutPage() {
                     value={formData.country}
                     onChange={handleChange}
                     placeholder="Country" 
-                    className="col-span-1 border border-neutral-800 bg-neutral-900 rounded-lg px-4 py-3 focus:outline-none focus:border-neutral-500 transition-colors text-white placeholder:text-neutral-600"
+                    className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-3 focus:outline-none focus:border-neutral-500 transition-colors text-white placeholder:text-neutral-600"
                   />
                   <input 
                     type="text" 
@@ -190,7 +217,15 @@ export default function CheckoutPage() {
                     value={formData.zipCode}
                     onChange={handleChange}
                     placeholder="Zip Code" 
-                    className="col-span-1 border border-neutral-800 bg-neutral-900 rounded-lg px-4 py-3 focus:outline-none focus:border-neutral-500 transition-colors text-white placeholder:text-neutral-600"
+                    className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-3 focus:outline-none focus:border-neutral-500 transition-colors text-white placeholder:text-neutral-600"
+                  />
+                  <input 
+                    type="tel" 
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    placeholder="Phone (optional)" 
+                    className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-3 focus:outline-none focus:border-neutral-500 transition-colors text-white placeholder:text-neutral-600"
                   />
                 </div>
               </div>
@@ -206,7 +241,7 @@ export default function CheckoutPage() {
                   {loading ? (
                     "Processing..."
                   ) : (
-                    <>Pay Securely <CreditCard className="w-5 h-5 ml-2" /></>
+                    <>Place Order <CreditCard className="w-5 h-5 ml-2" /></>
                   )}
                 </Button>
                 <div className="flex items-center justify-center gap-2 mt-4 text-xs text-neutral-500">
@@ -228,7 +263,7 @@ export default function CheckoutPage() {
             
             <div className="space-y-6 mb-8 max-h-[400px] overflow-y-auto pr-2 hide-scrollbar">
               {items.map((item) => (
-                <div key={item.id} className="flex gap-4">
+                <div key={item.product} className="flex gap-4">
                   <div className="w-20 h-24 bg-neutral-800 rounded-lg overflow-hidden shrink-0 relative border border-neutral-700">
                     <Image src={item.image} alt={item.name} fill className="w-full h-full object-cover opacity-80" />
                     <div className="absolute top-0 right-0 bg-black/80 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-bl-lg font-bold">

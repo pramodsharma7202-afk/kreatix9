@@ -2,19 +2,25 @@ import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IOrder extends Document {
   user: mongoose.Types.ObjectId;
+  orderNumber?: string;
   orderItems: {
     product: mongoose.Types.ObjectId;
     name: string;
     qty: number;
     price: number;
     image: string;
+    sku?: string;
   }[];
   shippingAddress: {
+    firstName?: string;
+    lastName?: string;
     street: string;
     city: string;
     state: string;
     zipCode: string;
     country: string;
+    phone?: string;
+    email?: string;
   };
   paymentMethod: string;
   paymentResult?: {
@@ -23,6 +29,7 @@ export interface IOrder extends Document {
     update_time: string;
     email_address: string;
   };
+  itemsPrice: number;
   taxPrice: number;
   shippingPrice: number;
   totalPrice: number;
@@ -31,28 +38,35 @@ export interface IOrder extends Document {
   isDelivered: boolean;
   deliveredAt?: Date;
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  notes?: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
 const OrderSchema: Schema = new Schema(
   {
-    user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    user: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+    orderNumber: { type: String, unique: true },
     orderItems: [
       {
-        product: { type: Schema.Types.ObjectId, ref: 'Product', required: true },
+        product: { type: Schema.Types.ObjectId, ref: 'Product' },
         name: { type: String, required: true },
         qty: { type: Number, required: true },
         price: { type: Number, required: true },
-        image: { type: String, required: true },
+        image: { type: String },
+        sku: String,
       },
     ],
     shippingAddress: {
+      firstName: String,
+      lastName: String,
       street: { type: String, required: true },
       city: { type: String, required: true },
       state: { type: String, required: true },
       zipCode: { type: String, required: true },
       country: { type: String, required: true },
+      phone: String,
+      email: String,
     },
     paymentMethod: { type: String, required: true },
     paymentResult: {
@@ -61,6 +75,7 @@ const OrderSchema: Schema = new Schema(
       update_time: { type: String },
       email_address: { type: String },
     },
+    itemsPrice: { type: Number, required: true, default: 0.0 },
     taxPrice: { type: Number, required: true, default: 0.0 },
     shippingPrice: { type: Number, required: true, default: 0.0 },
     totalPrice: { type: Number, required: true, default: 0.0 },
@@ -72,9 +87,14 @@ const OrderSchema: Schema = new Schema(
       type: String,
       enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'],
       default: 'pending',
+      index: true,
     },
+    notes: { type: String },
   },
   { timestamps: true }
 );
+
+OrderSchema.index({ createdAt: -1 });
+OrderSchema.index({ 'status': 1, 'createdAt': -1 });
 
 export default mongoose.models.Order || mongoose.model<IOrder>('Order', OrderSchema);

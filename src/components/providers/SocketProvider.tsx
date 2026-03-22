@@ -1,16 +1,20 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { io as ClientIO, Socket } from "socket.io-client";
 
 type SocketContextType = {
   socket: Socket | null;
   isConnected: boolean;
+  emit: (event: string, data?: any) => void;
+  on: (event: string, callback: (data: any) => void) => () => void;
 };
 
 const SocketContext = createContext<SocketContextType>({
   socket: null,
   isConnected: false,
+  emit: () => {},
+  on: () => () => {},
 });
 
 export const useSocket = () => {
@@ -21,51 +25,64 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
 
+  const emit = useCallback((event: string, data?: any) => {
+    if (socket?.connected) {
+      socket.emit(event, data);
+    }
+  }, [socket]);
+
+  const on = useCallback((event: string, callback: (data: any) => void) => {
+    if (!socket) return () => {};
+    
+    socket.on(event, callback);
+    return () => {
+      socket.off(event, callback);
+    };
+  }, [socket]);
+
   useEffect(() => {
-    // Determine the correct app URL dynamically to avoid CORS issues on Vercel
-    // Use env variable if set, otherwise fall back to the current origin in the browser
-    const appUrl =
-      process.env.NEXT_PUBLIC_APP_URL ||
-      (typeof window !== "undefined" ? window.location.origin : "");
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || (typeof window !== "undefined" ? window.location.origin : "");
 
-    // Skip socket init if we can't determine a URL
-    if (!appUrl) return;
+    if (!appUrl || typeof window === "undefined") return;
 
-    // Initial fetch to make sure the socket io server is initialized
-    fetch("/api/socket/io").finally(() => {
-      const socketInstance = ClientIO(appUrl, {
-        path: "/api/socket/io",
-        addTrailingSlash: false,
-        // Prefer WebSocket upgrade, fallback to polling
-        transports: ["websocket", "polling"],
-        reconnectionAttempts: 3,
-        reconnectionDelay: 2000,
+    let mounted = true;
+
+    fetch("/api/socket/io")
+      .catch(() => {})
+      .finally(() => {
+        if (!mounted) return;
+
+        const socketInstance = ClientIO(appUrl, {
+          path: "/api/socket/io",
+          addTrailingSlash: false,
+          transports: ["websocket", "polling"],
+          reconnectionAttempts: 5,
+          reconnectionDelay: 1000,
+        });
+
+        socketInstance.on("connect", () => {
+          if (mounted) setIsConnected(true);
+        });
+
+        socketInstance.on("disconnect", () => {
+          if (mounted) setIsConnected(false);
+        });
+
+        socketInstance.on("connect_error", () => {
+          if (mounted) setIsConnected(false);
+        });
+
+        setSocket(socketInstance);
       });
-
-      socketInstance.on("connect", () => {
-        setIsConnected(true);
-      });
-
-      socketInstance.on("disconnect", () => {
-        setIsConnected(false);
-      });
-
-      socketInstance.on("connect_error", () => {
-        // Silently handle connection errors in production
-        setIsConnected(false);
-      });
-
-      setSocket(socketInstance);
-    });
 
     return () => {
+      mounted = false;
       socket?.disconnect();
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
-    <SocketContext.Provider value={{ socket, isConnected }}>
+    <SocketContext.Provider value={{ socket, isConnected, emit, on }}>
       {children}
     </SocketContext.Provider>
   );
