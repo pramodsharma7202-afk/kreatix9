@@ -21,9 +21,21 @@ export const useSocket = () => {
   return useContext(SocketContext);
 };
 
+function getSocketUrl() {
+  if (typeof window === "undefined") return "";
+  if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL;
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+  return window.location.origin;
+}
+
 export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const emit = useCallback((event: string, data?: any) => {
     if (socket?.connected) {
@@ -41,45 +53,63 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   }, [socket]);
 
   useEffect(() => {
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || (typeof window !== "undefined" ? window.location.origin : "");
+    if (!isClient) return;
 
-    if (!appUrl || typeof window === "undefined") return;
+    const appUrl = getSocketUrl();
+    if (!appUrl) return;
 
     let mounted = true;
+    let socketInstance: Socket | null = null;
 
-    fetch("/api/socket/io")
-      .catch(() => {})
-      .finally(() => {
-        if (!mounted) return;
+    const connectSocket = () => {
+      if (!mounted) return;
 
-        const socketInstance = ClientIO(appUrl, {
+      try {
+        socketInstance = ClientIO(appUrl, {
           path: "/api/socket/io",
           addTrailingSlash: false,
           transports: ["websocket", "polling"],
-          reconnectionAttempts: 5,
+          reconnectionAttempts: 3,
           reconnectionDelay: 1000,
+          timeout: 10000,
         });
 
         socketInstance.on("connect", () => {
-          if (mounted) setIsConnected(true);
+          if (mounted) {
+            setIsConnected(true);
+            console.log("Socket connected:", socketInstance?.id);
+          }
         });
 
         socketInstance.on("disconnect", () => {
-          if (mounted) setIsConnected(false);
+          if (mounted) {
+            setIsConnected(false);
+            console.log("Socket disconnected");
+          }
         });
 
-        socketInstance.on("connect_error", () => {
-          if (mounted) setIsConnected(false);
+        socketInstance.on("connect_error", (error) => {
+          if (mounted) {
+            setIsConnected(false);
+            console.log("Socket connection error (may be expected on serverless platforms)");
+          }
         });
 
         setSocket(socketInstance);
-      });
+      } catch (error) {
+        console.log("Socket initialization error (may be expected on serverless platforms)");
+      }
+    };
+
+    connectSocket();
 
     return () => {
       mounted = false;
-      socket?.disconnect();
+      if (socketInstance) {
+        socketInstance.disconnect();
+      }
     };
-  }, []);
+  }, [isClient]);
 
   return (
     <SocketContext.Provider value={{ socket, isConnected, emit, on }}>
