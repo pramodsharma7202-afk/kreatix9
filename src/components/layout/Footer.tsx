@@ -26,9 +26,9 @@ export function Footer() {
           <h3 className="text-white font-bold mb-4 uppercase text-sm tracking-wider">Shop</h3>
           <ul className="space-y-3 text-sm">
             <li><Link href="/shop" className="hover:text-white transition-colors">All Products</Link></li>
-            <li><Link href="/collections/featured" className="hover:text-white transition-colors">Featured</Link></li>
-            <li><Link href="/collections/trending" className="hover:text-white transition-colors">Trending</Link></li>
-            <li><Link href="/brands" className="hover:text-white transition-colors">Brands</Link></li>
+            <li><Link href="/collections" className="hover:text-white transition-colors">Featured</Link></li>
+            <li><Link href="/collections" className="hover:text-white transition-colors">Trending</Link></li>
+            <li><Link href="/shop" className="hover:text-white transition-colors">Brands</Link></li>
           </ul>
         </div>
 
@@ -36,9 +36,9 @@ export function Footer() {
           <h3 className="text-white font-bold mb-4 uppercase text-sm tracking-wider">Support</h3>
           <ul className="space-y-3 text-sm">
             <li><Link href="/faq" className="hover:text-white transition-colors">FAQ</Link></li>
-            <li><Link href="/shipping" className="hover:text-white transition-colors">Shipping & Returns</Link></li>
+            <li><Link href="/faq" className="hover:text-white transition-colors">Shipping & Returns</Link></li>
             <li><Link href="/contact" className="hover:text-white transition-colors">Contact Us</Link></li>
-            <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
+            <li><Link href="/faq" className="hover:text-white transition-colors">Privacy Policy</Link></li>
           </ul>
         </div>
 
