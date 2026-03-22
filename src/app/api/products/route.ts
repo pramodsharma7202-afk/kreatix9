@@ -16,7 +16,7 @@ export async function GET(request: Request) {
     const category = searchParams.get('category') || '';
     const sort = searchParams.get('sort') || '-createdAt';
 
-    let query: any = {};
+    const query: any = {};
 
     if (search) {
       query.name = { $regex: search, $options: 'i' };
