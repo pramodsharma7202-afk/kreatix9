@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/utils";
 import { Trash2, ShoppingBag, ArrowRight } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useCartStore } from "@/store/useCartStore";
 
@@ -49,14 +50,15 @@ export default function CartPage() {
                 transition={{ delay: index * 0.1 }}
                 className="flex flex-col sm:flex-row gap-6 p-4 border border-neutral-800 bg-neutral-900/30 rounded-xl relative group"
               >
-                <div className="w-full sm:w-40 aspect-square rounded-lg overflow-hidden bg-neutral-900 shrink-0">
-                  <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                <div className="w-full sm:w-40 aspect-square rounded-lg overflow-hidden bg-neutral-900 shrink-0 relative">
+                  <Image src={item.image} alt={item.name} fill className="w-full h-full object-cover" />
                 </div>
                 
                 <div className="flex-1 flex flex-col justify-between py-2">
                   <div className="flex justify-between items-start gap-4">
                     <h3 className="text-xl font-medium tracking-wide">{item.name}</h3>
                     <button 
+                      aria-label={`Remove ${item.name} from cart`}
                       onClick={() => removeItem(item.id)}
                       className="text-neutral-500 hover:text-white transition-colors p-2 -mr-2 -mt-2"
                     >
@@ -71,11 +73,13 @@ export default function CartPage() {
                   <div className="flex items-center gap-6">
                     <div className="flex items-center border border-neutral-700 rounded-lg bg-neutral-900/50 p-1 w-fit">
                       <button 
+                        aria-label="Decrease quantity"
                         onClick={() => updateQuantity(item.id, Math.max(1, item.qty - 1))}
                         className="w-8 h-8 flex items-center justify-center text-lg hover:text-white text-neutral-400"
                       >-</button>
-                      <span className="w-10 text-center text-sm">{item.qty}</span>
+                      <span aria-label="Quantity" className="w-10 text-center text-sm">{item.qty}</span>
                       <button 
+                        aria-label="Increase quantity"
                         onClick={() => updateQuantity(item.id, Math.min(item.stock, item.qty + 1))}
                         className="w-8 h-8 flex items-center justify-center text-lg hover:text-white text-neutral-400"
                       >+</button>

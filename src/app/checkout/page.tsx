@@ -7,6 +7,7 @@ import { formatPrice } from "@/lib/utils";
 import { Lock, CreditCard, ChevronRight } from "lucide-react";
 import { useCartStore } from "@/store/useCartStore";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useSocket } from "@/components/providers/SocketProvider";
@@ -229,7 +230,7 @@ export default function CheckoutPage() {
               {items.map((item) => (
                 <div key={item.id} className="flex gap-4">
                   <div className="w-20 h-24 bg-neutral-800 rounded-lg overflow-hidden shrink-0 relative border border-neutral-700">
-                    <img src={item.image} alt={item.name} className="w-full h-full object-cover opacity-80" />
+                    <Image src={item.image} alt={item.name} fill className="w-full h-full object-cover opacity-80" />
                     <div className="absolute top-0 right-0 bg-black/80 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-bl-lg font-bold">
                       {item.qty}
                     </div>

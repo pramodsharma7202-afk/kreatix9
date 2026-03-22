@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/utils";
 import { ShoppingCart, Star, ShieldCheck, Truck, ArrowLeft } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useCartStore } from "@/store/useCartStore";
 
@@ -47,16 +48,16 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
             className="flex flex-col gap-4"
           >
             <div className="aspect-square bg-neutral-900 rounded-xl overflow-hidden relative border border-neutral-800">
-              <img src={mainImage} alt={product.name} className="object-cover w-full h-full" />
+              <Image src={mainImage} alt={product.name} fill className="object-cover w-full h-full" />
             </div>
             <div className="flex gap-4 overflow-x-auto pb-2 hide-scrollbar">
               {product.images.map((img, idx) => (
                 <button 
                   key={idx} 
                   onClick={() => setMainImage(img)}
-                  className={`w-24 h-24 shrink-0 rounded-lg overflow-hidden border-2 transition-all ${mainImage === img ? 'border-white' : 'border-transparent opacity-50 hover:opacity-100'}`}
+                  className={`w-24 h-24 shrink-0 rounded-lg overflow-hidden border-2 transition-all relative ${mainImage === img ? 'border-white' : 'border-transparent opacity-50 hover:opacity-100'}`}
                 >
-                  <img src={img} alt="" className="object-cover w-full h-full" />
+                  <Image src={img} alt="" fill className="object-cover w-full h-full" />
                 </button>
               ))}
             </div>
@@ -97,11 +98,13 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
             <div className="flex flex-wrap items-center gap-6 border-t border-b border-neutral-900 py-8 mb-10">
               <div className="flex items-center border border-neutral-700 rounded-lg bg-neutral-900/50 p-1">
                 <button 
+                  aria-label="Decrease quantity"
                   onClick={() => setQty(q => Math.max(1, q - 1))}
                   className="w-10 h-10 flex items-center justify-center text-xl hover:text-white text-neutral-400"
                 >-</button>
-                <span className="w-12 text-center text-lg">{qty}</span>
+                <span aria-label="Quantity" className="w-12 text-center text-lg">{qty}</span>
                 <button 
+                  aria-label="Increase quantity"
                   onClick={() => setQty(q => Math.min(product.stock, q + 1))}
                   className="w-10 h-10 flex items-center justify-center text-xl hover:text-white text-neutral-400"
                 >+</button>

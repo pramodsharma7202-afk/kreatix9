@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 
 export const metadata: Metadata = {
   title: 'About Kreatix9',
@@ -26,8 +27,8 @@ export default function AboutPage() {
               Kreatix9 was born from a singular vision — to create a marketplace where quality is non-negotiable and every product tells a story of mastery and craft. We partner exclusively with artisans and luxury brands who share our unwavering commitment to excellence.
             </p>
           </div>
-          <div className="aspect-square bg-neutral-900 rounded-2xl overflow-hidden border border-neutral-800">
-            <img src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?q=80&w=800&auto=format&fit=crop" alt="Luxury craftsmanship" className="w-full h-full object-cover opacity-80" />
+          <div className="aspect-square bg-neutral-900 rounded-2xl overflow-hidden border border-neutral-800 relative">
+            <Image src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?q=80&w=800&auto=format&fit=crop" alt="Luxury craftsmanship" fill className="w-full h-full object-cover opacity-80" />
           </div>
         </div>
 

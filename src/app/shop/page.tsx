@@ -70,7 +70,7 @@ export default function ShopPage() {
                 className="w-full bg-neutral-900 border border-neutral-800 rounded-full py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-neutral-500 transition-colors placeholder:text-neutral-600"
               />
             </div>
-            <Button variant="outline" size="icon" className="rounded-full shrink-0 border-neutral-800 bg-neutral-900">
+            <Button aria-label="Filters" variant="outline" size="icon" className="rounded-full shrink-0 border-neutral-800 bg-neutral-900">
               <SlidersHorizontal className="w-4 h-4 text-neutral-400" />
             </Button>
           </div>
@@ -129,6 +129,7 @@ export default function ShopPage() {
                   </div>
                   
                   <Button 
+                    aria-label={`Add ${product.name} to cart`}
                     variant="outline" 
                     size="icon" 
                     className="shrink-0 border-neutral-800 bg-neutral-900/50 hover:bg-white hover:text-black rounded-full h-10 w-10 transition-all duration-300"

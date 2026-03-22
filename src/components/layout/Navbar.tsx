@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ShoppingCart, Menu, Search } from "lucide-react";
@@ -16,10 +17,12 @@ export function Navbar() {
       <div className="container mx-auto px-4 h-20 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 group transition-transform hover:scale-105">
-          <img 
+          <Image 
             src="/logo.png" 
             alt="Kreatix9 Logo" 
-            className="w-12 h-12 object-contain brightness-110 filter drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] transition-all duration-300 group-hover:drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]" 
+            width={48}
+            height={48}
+            className="object-contain brightness-110 filter drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] transition-all duration-300 group-hover:drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]" 
           />
           <span className="text-2xl font-black uppercase tracking-widest text-white hidden sm:inline-block">
             Kreatix<span className="text-neutral-400">9</span>
@@ -36,7 +39,7 @@ export function Navbar() {
 
         {/* Actions */}
         <div className="flex items-center gap-6">
-          <button className="hover:text-neutral-400 transition-colors">
+          <button aria-label="Search" className="hover:text-neutral-400 transition-colors">
             <Search className="w-5 h-5" />
           </button>
           
@@ -51,7 +54,7 @@ export function Navbar() {
             )}
           </Link>
 
-          <button className="md:hidden hover:text-neutral-400 transition-colors">
+          <button aria-label="Menu" className="md:hidden hover:text-neutral-400 transition-colors">
             <Menu className="w-6 h-6" />
           </button>
         </div>

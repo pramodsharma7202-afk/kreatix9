@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Github, Twitter, Instagram } from "lucide-react";
 
@@ -7,10 +8,12 @@ export function Footer() {
       <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-12">
         <div className="flex flex-col gap-4">
           <Link href="/" className="flex items-center gap-2 group w-fit transition-transform hover:scale-105">
-            <img 
+            <Image 
               src="/logo.png" 
               alt="Kreatix9 Logo" 
-              className="w-10 h-10 object-contain brightness-90 transition-all duration-300 group-hover:brightness-110" 
+              width={40}
+              height={40}
+              className="object-contain brightness-90 transition-all duration-300 group-hover:brightness-110" 
             />
             <h2 className="text-white text-xl font-black uppercase tracking-widest">Kreatix9</h2>
           </Link>

@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import connectToDatabase from '@/lib/db/mongoose';
@@ -43,9 +44,10 @@ export default async function CollectionsPage() {
                 className="group relative aspect-[3/4] overflow-hidden bg-neutral-900 rounded-2xl block"
               >
                 {/* Image */}
-                <img
+                <Image
                   src={category.image || "https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?q=80&w=1000"}
                   alt={category.name}
+                  fill
                   className="absolute inset-0 w-full h-full object-cover opacity-60 transition-transform duration-1000 group-hover:scale-110 group-hover:opacity-90"
                 />
                 
